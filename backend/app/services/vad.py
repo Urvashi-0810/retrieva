@@ -10,7 +10,8 @@ class SileroVADService:
             repo_or_dir='snakers4/silero-vad',
             model='silero_vad',
             force_reload=False,
-            onnx=True
+            onnx=True,
+            trust_repo=True
         )
         self.get_speech_timestamps = utils[0]
         print("VAD Model loaded successfully.")
