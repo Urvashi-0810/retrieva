@@ -3,4 +3,10 @@ uvicorn
 pydantic>=2.0
 pydantic-settings
 groq
-httpx2
+
+torch
+torchaudio
+onnxruntime
+numpy
+httpx
+websockets
