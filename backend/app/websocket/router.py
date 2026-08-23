@@ -1,11 +1,13 @@
 import asyncio
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from datetime import datetime
 import json
 
 from app.services.vad import SileroVADService
 from app.services.stt import SarvamSTTService
 from app.schemas.events import TranscriptEvent, WebSocketEvent
+from app.dependencies import get_orchestrator
+from app.pipeline.orchestrator import PipelineOrchestrator
 
 router = APIRouter()
 
@@ -14,7 +16,7 @@ vad_service = SileroVADService()
 stt_service = SarvamSTTService()
 
 @router.websocket("/ws/voice")
-async def websocket_voice_endpoint(websocket: WebSocket):
+async def websocket_voice_endpoint(websocket: WebSocket, orchestrator: PipelineOrchestrator = Depends(get_orchestrator)):
     await websocket.accept()
     
     # We will store the audio frames here while the user is actively speaking
@@ -62,7 +64,7 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                                 stability=1.0
                             )
                             
-                            # 5. Send it back out (Person 1's orchestrator will listen for this)
+                            # 5. Send it back out
                             response = WebSocketEvent(
                                 type="transcript_final",
                                 request_id=request_id,
@@ -70,6 +72,16 @@ async def websocket_voice_endpoint(websocket: WebSocket):
                                 data=transcript_event.dict()
                             )
                             await websocket.send_text(response.json())
+                            
+                            # 6. Feed to orchestrator and stream LLM response
+                            async for token in orchestrator.process_query(request_id, transcribed_text):
+                                llm_event = WebSocketEvent(
+                                    type="llm_token",
+                                    request_id=request_id,
+                                    timestamp=datetime.utcnow(),
+                                    data={"token": token}
+                                )
+                                await websocket.send_text(llm_event.json())
 
     except WebSocketDisconnect:
         print("Client disconnected normally.")

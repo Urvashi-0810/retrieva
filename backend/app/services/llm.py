@@ -5,7 +5,7 @@ from app.schemas.retrieval import RetrievalResult
 from app.services.interfaces import LLMServiceProtocol
 
 class GroqLLMService(LLMServiceProtocol):
-    def __init__(self, api_key: str, model: str = "openai/gpt-oss-20b"):
+    def __init__(self, api_key: str, model: str = "llama3-8b-8192"):
         self.client = AsyncGroq(api_key=api_key)
         self.model = model
 
