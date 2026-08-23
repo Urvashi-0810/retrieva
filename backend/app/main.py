@@ -1,13 +1,17 @@
+import time
 from fastapi import FastAPI, Depends, WebSocket
 from fastapi.responses import StreamingResponse
-import time
 
 from app.pipeline.orchestrator import PipelineOrchestrator
 from app.dependencies import get_orchestrator
 from app.websocket.router import router as websocket_router
+from app.api.analytics import router as analytics_router
+from app.api.benchmark import router as benchmark_router
 
 app = FastAPI(title="Voice-Enabled RAG API")
 app.include_router(websocket_router)
+app.include_router(analytics_router)
+app.include_router(benchmark_router)
 
 @app.get("/health")
 async def health_check():

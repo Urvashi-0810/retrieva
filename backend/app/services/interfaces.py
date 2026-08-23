@@ -11,7 +11,10 @@ class RetrievalServiceProtocol(Protocol):
         ...
 
 class CacheServiceProtocol(Protocol):
-    async def get_cached_answer(self, query: str, query_embedding: List[float]) -> CacheResult:
+    async def get_exact_cached_answer(self, query: str) -> CacheResult:
+        ...
+        
+    async def get_semantic_cached_answer(self, query_embedding: List[float]) -> CacheResult:
         ...
         
     async def set_cached_answer(self, query: str, query_embedding: List[float], answer: str, evidence_chunk_ids: List[str]):
@@ -41,4 +44,7 @@ class STTServiceProtocol(Protocol):
 
 class TelemetryCollectorProtocol(Protocol):
     async def record_metric(self, request_id: str, metric_name: str, value: float):
+        ...
+        
+    async def finalize_request(self, request_id: str):
         ...
